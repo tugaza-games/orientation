@@ -1,0 +1,151 @@
+#!/bin/bash
+#NAMESPACE=http
+
+function urldecode(thing) {
+    thing=`echo $thing | tr '+' ' '`
+    echo -e ${thing//%/\\x}
+}
+
+function parse(bodyfile) {
+    export namespaced HTTP_QUERY_PARAMETERS=`echo $QUERY_STRING | tr "&" "\n"`
+    export namespaced COOKIE_JAR=`echo $HTTP_COOKIE | tr ";" "\n" | sed -e "s/^ \+//g"`
+    namespaced HTTP_POST=`cat $bodyfile | tr "&" "\n"`
+    namespaced HTTP_POST_RAW=${namespaced HTTP_POST}
+    local boundary=`cat $bodyfile | grep "Content-Disposition" -a -B 1 | head -n 1`
+    local offsets=`cat $bodyfile | egrep -a -b "^$boundary*" | cut -d: -f1 | tr "\n" " "`
+    i=1
+    for offset in $offsets
+    do
+    	let i=i+1
+	    end=`echo $offsets | cut -d\  -f$i`
+	    if [[ $end != '' ]]
+	    then
+        let offset=offset+3
+        let length=end-offset-1
+        local filename=`mktemp`
+        cat $bodyfile | tail -c+$offset | head -c $length > $filename
+        meta_offset=`cat $filename | egrep -a -b -v '\n' | head -n 2 | tail -n1 | cut -d: -f1`
+        let meta_offset=meta_offset+3
+        cat $filename | tail -c+$meta_offset > $filename.content
+        let meta_offset=meta_offset-3
+        cat $filename | head -c+$meta_offset > $filename.meta
+        rm $filename
+        if [[ -s $filename.content ]]
+	      then
+            if [[ `cat $filename.meta | grep -c "Content-Type"` -eq 0  ]]; then
+                local name=`cat $filename.meta | grep "Content-Disposition" | cut -d\= -f2- | tr -d "\r" | tr -d "\n" | tr -d '"'`
+                local value=`cat $filename.content | tr -d "\r" | tr -d "\n"`
+                namespaced HTTP_POST=`echo -e "$name=$value\n${namespaced HTTP_POST}"`
+            else
+		        namespaced FILES=`echo -e "$filename.content\n${namespaced FILES}"`
+		        namespaced FILES_TYPES=`echo -e "$(cat $filename.meta | grep Content-Type | cut -d: -f2)\n${namespaced FILES_TYPES}"`
+		        namespaced FILES_NAMES=`echo -e "$(cat $filename.meta | grep Content-Dispo | cut -d: -f2)\n${namespaced FILES_NAMES}"`
+		    fi
+        else
+            rm $filename*
+	    fi
+	fi
+    done
+}
+
+function get_file(inputname) {
+    index=`echo "${namespaced FILES_NAMES}" | grep -n "name=\"$inputname\"" | head -n 1 | cut -d: -f1`
+    echo "${namespaced FILES}" | tail -n+$index | head -n1
+}
+
+function get_original_filename(tmpname) {
+    index=`echo "${namespaced FILES}" | grep -n "$tmpname" | head -n 1 | cut -d: -f1`
+    echo "${namespaced FILES_NAMES}" | tail -n+$index | head -n1 | tr ';' "\n" | grep "filename=" | cut -d= -f2 | tr -d '"'
+}
+
+function get_mimetype(tmpname) {
+    index=`echo "${namespaced FILES}" | grep -n "$tmpname" | head -n 1 | cut -d: -f1`
+    echo "${namespaced FILES_TYPES}" | tail -n+$index | head -n1 | cut -d: -f2
+}
+
+function clean_files() {
+    for tmpfile in ${namespaced FILES}
+    do
+	rm $tmpfile*
+    done
+}
+
+function get_param(name) {
+    if [[ `echo -e "${namespaced HTTP_QUERY_PARAMETERS}" | egrep -c "^$name="` -lt 1 ]]
+    then
+	echo ""
+	return 1
+    fi
+    this::urldecode "`echo "${namespaced HTTP_QUERY_PARAMETERS}" | egrep "^$name=" | cut -d\= -f2`"
+    return 0
+}
+
+function get_post_raw() {
+    echo -en "${namespaced HTTP_POST_RAW}"
+}
+
+function get_post(name) {
+    if [[ `echo -e "${namespaced HTTP_POST}" | egrep -c "^$name="` -lt 1 ]]
+    then
+	echo ""
+	return 1
+    fi
+    this::urldecode "`echo "${namespaced HTTP_POST}" | egrep "^$name=" | cut -d\= -f2`"
+    return 0
+}
+
+function strip_all() {
+  cat - | sed 's/[^a-zA-Z0-9.,:;!?@~#$%^&*()+-_ ]//g'
+}
+
+function serve_file(filename) {
+    namespaced SERVE_FILE="$filename"
+}
+
+function output_start {
+    echo "HTTP/1.0 `this::get_set_header 'Status' | cut -d: -f2-`"
+    if [[ ${namespaced SERVE_FILE} != "" ]]
+    then
+        this::set_header "Content-Type" "`file --mime-type ${namespaced SERVE_FILE} | cut -d: -f2`"
+        this::_headers_out
+        echo ""
+        cat ${namespaced SERVE_FILE}
+        return
+    fi
+
+    this::_headers_out
+    if [[ ${namespaced NEW_COOKIE_JAR} != "" ]]
+    then
+	echo "${namespaced NEW_COOKIE_JAR}" | egrep -v "^$" | sed -e "s/^/Set-Cookie: /g"
+    fi
+    echo ""
+}
+
+function _headers_out() {
+    if [[ -z ${namespaced HTTP_HEADERS} ]]
+    then
+	echo "Content-Type: text/html"
+    else
+	echo -e "${namespaced HTTP_HEADERS}"
+    fi
+
+}
+
+function set_header(name value) {
+    namespaced HTTP_HEADERS=`echo "${namespaced HTTP_HEADERS}" | grep -v $name\:`
+    namespaced HTTP_HEADERS=`echo -e "$name: $value\n${namespaced HTTP_HEADERS}"`
+}
+
+function get_set_header(name) {
+    echo "${namespaced HTTP_HEADERS}" | grep $name:
+}
+
+
+
+function get_cookie(name) {
+    echo "${namespaced COOKIE_JAR}" | egrep "^$name=" | cut -d\= -f2
+}
+
+function set_cookie(name value expires) {
+    export namespaced NEW_COOKIE_JAR=`echo -e "${namespaced NEW_COOKIE_JAR}\n$name=$value; Expires=$expires; Secure; HttpOnly; SameSite=Strict;"`
+}

@@ -1,0 +1,4 @@
+logs/logger@https://raw.githubusercontent.com/tugaza/lib/master/logs/logger
+queue/client@https://raw.githubusercontent.com/tugaza/lib/master/queue/client
+player/playlister@https://raw.githubusercontent.com/tugaza/lib/master/player/playlister
+timeslots/timeslots@https://raw.githubusercontent.com/tugaza/lib/master/timeslots/timeslots

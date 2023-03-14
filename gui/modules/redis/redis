@@ -1,0 +1,19 @@
+#NAMESPACE=redis
+
+function setex(key value ttl) {
+    redis-cli -h redis --raw SETEX "$key" $ttl "$value" > /dev/null
+}
+
+function get(key) {
+    redis-cli -h redis --raw GET "$key"
+}
+
+function peek_multiple(list offset amount) {
+    redis-cli --raw -h redis LRANGE "$list" "$offset" "$amount"
+}
+
+function update_list_item(list value ttl) {
+    redis-cli --raw -h redis LREM $list 0 $value > /dev/null
+    redis-cli --raw -h redis RPUSH $list $value > /dev/null
+    redis-cli --raw -h redis EXPIRE $list $ttl GT > /dev/null
+}

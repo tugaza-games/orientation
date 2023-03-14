@@ -1,0 +1,31 @@
+#!/bin/bash
+#NAMESPACE=route_position
+
+dependencies::depends "http/webauth"
+dependencies::depends "game/logic"
+
+function headers()
+{
+    http::set_header "Content-Type" "application/json"
+}
+
+function show() {
+    local latitude=`http::get_post_raw | jq .latitude | http::strip_all`
+    local longitude=`http::get_post_raw | jq .longitude | http::strip_all`
+    local accuracy=`http::get_post_raw | jq .accuracy | http::strip_all`
+    local id=`webauth::getid`
+    gamelogic::register_player "$id" "$latitude" "$longitude" "$accuracy"
+
+    cat << EOF
+    {
+        "latitude":$latitude,
+        "longitude":$longitude,
+        "distance": `gamelogic::distance $id`,
+        "bearing":`gamelogic::bearing $id`,
+        "hint":`gamelogic::hint $id`,
+        "points": [
+            `gamelogic::player_positions`
+        ]
+    }
+EOF
+}

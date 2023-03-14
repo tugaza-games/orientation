@@ -1,0 +1,22 @@
+version: "3"
+services:
+    gui:
+      build: 
+        context: .
+      ports:
+        - 1234:443
+      networks:
+        - orientaciniz
+      volumes:
+        - .:/src
+        - ./pki:/pki
+      logging:
+        driver: "json-file"
+        options:
+          max-size: "500k"
+    redis:
+        image: redis
+        networks:
+          - orientaciniz
+networks:
+  orientaciniz:

@@ -1,0 +1,20 @@
+#!/bin/bash
+#NAMESPACE=route_positions
+
+dependencies::depends "http/webauth"
+dependencies::depends "game/logic"
+
+function headers()
+{
+    http::set_header "Content-Type" "application/json"
+}
+
+function show() {
+    cat << EOF
+    {
+       "points": [
+            `gamelogic::player_positions`
+        ]
+    }
+EOF
+}

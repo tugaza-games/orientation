@@ -1,0 +1,40 @@
+#!/bin/bash
+
+DIR=`dirname "${BASH_SOURCE[1]}"`
+SCRIPT_DIR=$DIR
+GLOBAL_REPOSITORY_ADDRESS="https://raw.githubusercontent.com/tugaza/lib/master/repofile"
+GLOBAL_CACHE_DIR="$DIR/cache"
+MODULE_DIR="modules"
+if [[ -f /sbin/md5 ]]
+then
+    MD5='/sbin/md5'
+else
+    MD5='/usr/bin/md5sum'
+fi
+# ERROR DEFINITIONS
+
+ERROR_NOT_FOUND=101
+ERROR_BAD_PROGRAMMER=1
+ERROR_BAD_USER=2
+
+AUTHFILE=$SCRIPT_DIR/vars/.htpasswd
+AUTHKEY=changeme
+AUTHSECRET="thisisasecretkeythatissetforauthorizedusers"
+ROLES="ROLE_ADD_TO_QUEUE ROLE_ADD_TO_CUST_QUEUE ROLE_ADMIN ROLE_FOREVER_COOL"
+
+
+COOLCAT_TIME=360
+COOLCAT_AMOUNT=3
+
+SHARED_STORAGE="/data/"
+
+IDLE_QUEUE="idle-queue"
+REQUEST_QUEUE="request-queue"
+
+BASE_DIR=""
+ADVERTISED_HOST='https://localhost:1235'
+RADIO_TITLE='Tugaza Radio'
+ALLOW_SKIPPING_DURING_PEEK=0
+
+MAX_CONCURRENCY=25
+MAX_RUN_TIME=30

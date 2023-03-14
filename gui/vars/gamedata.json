@@ -1,0 +1,147 @@
+[{
+  "id": "startas",
+  "latitude": 54.744937,
+  "longitude": 25.025200,
+  "hints": [{
+    "min_distance": 0,
+    "max_distance": 10,
+    "hint": "cmFrdGFzOnN0YXJ0YXMK"
+  },
+    {
+      "min_distance": 11,
+      "max_distance": 100,
+      "hint": "a2FsaWJyYWNpamEK"
+    }
+  ],
+  "key": "b00cb6afee49c925dc431ae5b0eb9370e61ac07305b9eb0a5df0fab8c32cf8fa306ab1d75531fb4a724e38adb9b2c07e469bf0b8d842ec2c1cc83783ef155f49"
+},
+  {
+    "id": "regykla",
+    "latitude": 54.740935,
+    "longitude": 25.016488,
+    "hints": [{
+      "min_distance": 0,
+      "max_distance": 30,
+      "hint": "cmFrdGFzOnNrYXJkaXMK"
+    },
+      {
+        "min_distance": 31,
+        "max_distance": 200,
+        "hint": "aSBzb2R5YmEga2VsaWFzLCBiZXQgc29keWJvbiBuZXV6c3VrYW0uLi4K"
+      },
+      {
+        "min_distance": 201,
+        "max_distance": 1500,
+        "hint": "cGFncmluZGluaXMga2VsaWFzLCBwYSBrYWlyZWkga2VsZWxpcywgbWVza2kgZGVsIGpvCg=="
+      }
+    ],
+    "key": "239ef6845affc8d23ede681ab8d6018fcd114d0c09b9cc807c8d8979125635ab90bc37e4e2f39dfeade70de9f8c8a6213b97f6261332d5bb6362749788002764"
+  },
+  {
+    "id": "naujoji_reva_parkingas",
+    "latitude": 54.741615,
+    "longitude": 25.025146,
+    "hints": [{
+      "min_distance": 0,
+      "max_distance": 15,
+      "hint": "cmFrdGFzOnByaXNpcGFya2F2b20K"
+    },
+      {
+        "min_distance": 16,
+        "max_distance": 1500,
+        "hint": "aSBzb2R5YmEga2VsaWFzLCBiZXQgc29keWJvbiBuZXV6c3VrYW0uLi4K"
+      }
+    ],
+    "key": "dda48fcf00316d8295ea97e275ecf1d5dbb2ca7232230c90099ebfec8f4eb7564a16876d176a3f54f4b467db9c80c6997f266019ccf26f79bd6b350e30ef7103"
+  },
+  {
+    "id": "naujoji_reva",
+    "latitude": 54.739470,
+    "longitude": 25.022595,
+    "hints": [{
+      "min_distance": 0,
+      "max_distance": 25,
+      "hint": "cmFrdGFzOiBwZWxpYWthbG5pcwo="
+    },
+      {
+        "min_distance": 26,
+        "max_distance": 1500,
+        "hint": "a3VyIGNpYSB2YWl6ZHUgZ2FsaSBidXQsIGE/Cg=="
+      }
+    ],
+    "key": "ef67b1048b849fab044d300dfacaa441df44c3d4b8532276a9e0e2c3e42b56bf450983c8266f357f0a51308358b6863283999b26ea8b2bbce4e9095d27b1a9fc"
+  },
+  {
+    "id": "naujoji_reva",
+    "latitude": 54.739470,
+    "longitude": 25.022595,
+    "hints": [{
+      "min_distance": 0,
+      "max_distance": 25,
+      "hint": "cmFrdGFzOiBwZWxpYWthbG5pcwo="
+    },
+      {
+        "min_distance": 26,
+        "max_distance": 1500,
+        "hint": "a3VyIGNpYSB2YWl6ZHUgZ2FsaSBidXQsIGE/Cg=="
+      }
+    ],
+    "key": "ef67b1048b849fab044d300dfacaa441df44c3d4b8532276a9e0e2c3e42b56bf450983c8266f357f0a51308358b6863283999b26ea8b2bbce4e9095d27b1a9fc"
+  },
+  {
+    "id": "saltinis",
+    "latitude": 54.732423,
+    "longitude": 25.042377,
+    "hints": [{
+      "min_distance": 0,
+      "max_distance": 15,
+      "hint": "cmFrdGFzOiBpc3Rha29zCg=="
+    },
+      {
+        "min_distance": 16,
+        "max_distance": 199,
+        "hint": "YmV0IG5lIGpvcyBtdW1zIHJlaWtpYSEK"
+      },
+      {
+        "min_distance": 200,
+        "max_distance": 1500,
+        "hint": "a3VyIGNpYSBhcnRpbWlhdXNpYSBiYXpueWNpYT8uLgo="
+      }
+    ],
+    "key": "5c4991c55449fc88df67397962c391faa71d9fba169037ee946b051f973f8d74373cb4e7b8aa6061e338b16f2152d1c973d18d1f9e8c0c137819cafbbb413cba"
+  },
+  {
+    "id": "regykla",
+    "latitude": 54.734920,
+    "longitude": 25.040695,
+    "hints": [{
+      "min_distance": 0,
+      "max_distance": 15,
+      "hint": "cmFrdGFzOiByZWd5a2xhCg=="
+    },
+      {
+        "min_distance": 16,
+        "max_distance": 1990,
+        "hint": "bm8gaGludAo="
+      }
+    ],
+    "key": "8af6ad599447a5c9ee3ad2d29f21df20f13afe499431dc716a7c7126c4ea0f7dc66bb6af93da30baea4bddd61efbcb40b101d76fe0d9724a0e6ca33c97739da6"
+  },
+  {
+    "id": "pabaiga",
+    "latitude": 54.735632,
+    "longitude": 25.057007,
+    "hints": [{
+      "min_distance": 0,
+      "max_distance": 15,
+      "hint": "cmFrdGFzOiBwYWJhaWdhCg=="
+    },
+      {
+        "min_distance": 16,
+        "max_distance": 1990,
+        "hint": "bm8gaGludAo="
+      }
+    ],
+    "key": "bec73792324058e6c33f6c72b4057fea2fe5359e791239779b984327f18f41f2e8700db6c7efb89a472e4810fef779a086e0c0a6dda1a569fe85d395e8a4cd51"
+  }
+]

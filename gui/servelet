@@ -1,0 +1,50 @@
+#!/bin/bash
+
+DIR=`dirname "${BASH_SOURCE[0]}"`
+if [[ -f $DIR/bootstrap.sh ]]
+then
+    . $DIR/bootstrap.sh
+else
+    echo "bootstrap not found"
+    exit 256
+fi
+
+trap "kill -9 $$" SIGINT
+
+while [[ `ps ax | grep -c servelet` -gt MAX_CONCURRENCY ]]; do
+sleep 0.1;
+done;
+
+bootstrap_load_module http/server
+bootstrap_load_module http/http
+bootstrap_load_module http/webauth
+bootstrap_load_module routes/routes
+
+httpd::servelet_start
+
+# redirect away from cgi-bin
+if [[ "$REQUEST_URI" =~ /cgi-bin(.*) ]]
+then
+    http::set_header "Content-Type" "text/html; charset=UTF-8"
+    http::set_header "X-Powered-By" "YEAHBASH"
+    http::set_header "Location" "/$BASE_DIR"
+    http::set_header "Status" "301 Looky here"
+    http::output_start
+    echo ""
+    http::clean_files
+    httpd::end
+fi
+
+# run.
+webauth::init
+
+route=`http::get_param route`
+http::set_header "Content-Type" "text/html; charset=UTF-8"
+routes::headers "$route"
+http::set_header "X-Powered-By" "YEAHBASH"
+out=`routes::show "$route"`
+http::output_start
+echo "$out"
+http::clean_files
+
+httpd::end

@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+#NAMESPACE=extlib_crc32
+
+#adapted from https://stackoverflow.com/questions/44804668/how-to-calculate-crc32-checksum-from-a-string-on-linux-bash
+#by https://stackoverflow.com/users/7939871/l%c3%a9a-gris
+
+declare -i -a namespaced CRC32_LOOKUP_TABLE
+
+function init() {
+  local -i -r LSB_CRC32_POLY=0xEDB88320 # The CRC32 polynomal LSB order
+  local -i index byte lsb
+  for index in {0..255}; do
+    ((byte = 255 - index))
+    for _ in {0..7}; do # 8-bit lsb shift
+      ((lsb = byte & 0x01, byte = ((byte >> 1) & 0x7FFFFFFF) ^ (lsb == 0 ? LSB_CRC32_POLY : 0)))
+    done
+    ((namespaced CRC32_LOOKUP_TABLE[index] = byte))
+  done
+}
+
+typeset -r namespaced CRC32_LOOKUP_TABLE
+
+function crc32_string(str) {
+  local -i i byte crc=0xFFFFFFFF index
+  for ((i = 0; i < ${#str}; i++)); do
+    byte=$(printf '%d' "'${str:i:1}") # Get byte value of character at i
+    ((index = (crc ^ byte) & 0xFF, crc = (namespaced CRC32_LOOKUP_TABLE[index] ^ (crc >> 8)) & 0xFFFFFFFF))
+  done
+  echo $((crc ^ 0xFFFFFFFF))
+}

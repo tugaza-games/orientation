@@ -1,0 +1,9 @@
+#!/bin/bash
+#NAMESPACE=route_map
+
+dependencies::depends "http/webauth"
+dependencies::depends "views/map"
+
+function show() {
+    view_map::show
+}

@@ -1,0 +1,56 @@
+#!/bin/bash
+#NAMESPACE=routes
+
+dependencies::depends "http/webauth"
+
+function headers(route) {
+    case $route in
+    "all_positions")
+          dependencies::depends "routes/route_positions"
+          route_positions::headers
+     ;;
+    "position")
+        dependencies::depends "routes/route_position"
+        route_position::headers
+    ;;
+	*)
+	    dependencies::depends "routes/route_default"
+        route_default::headers
+	;;
+    esac
+}
+
+
+function get_route(route) {
+    if [[ $route == "" ]]
+    then
+	echo 'default'
+    fi
+    echo $route
+}
+
+function show(route) {
+    case $route in
+    "map")
+        dependencies::depends "routes/route_map"
+        route_map::show
+    ;;
+
+    "all_positions")
+          dependencies::depends "routes/route_positions"
+          route_positions::show
+     ;;
+    "position")
+        dependencies::depends "routes/route_position"
+        route_position::show
+    ;;
+    "solve")
+        dependencies::depends "routes/route_default"
+        route_default::solve
+    ;;
+    *)
+        dependencies::depends "routes/route_default"
+        route_default::show
+	;;
+    esac
+}

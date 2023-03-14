@@ -1,0 +1,21 @@
+#!/bin/bash
+#NAMESPACE=route_default
+
+dependencies::depends "http/webauth"
+dependencies::depends "views/main"
+
+function headers()
+{
+    http::set_header "HELLO_HAKOR" "HI"
+}
+
+function solve() {
+    local solution=`http::get_post "solution_key" | http::strip_all`
+    dependencies::depends "game/logic"
+    gamelogic::solve "$solution"
+    this::show
+}
+
+function show() {
+    view_main::show
+}

@@ -1,0 +1,108 @@
+#NAMESPACE=httpd
+
+dependencies::depends "logs/logger"
+dependencies::depends "http/http"
+
+function listen(ip port) {
+    logger::log "info" "listen on $port"
+    if [[ ! -f /tmp/servelets ]]; then
+        mkfifo /tmp/servelets
+    fi
+    tail -f /tmp/servelets&
+    socat -T 60 TCP4-LISTEN:$port,reuseaddr,bind=$ip,fork SYSTEM:"timeout $MAX_RUN_TIME /bin/bash $DIR/servelet 2>>/tmp/servelets"
+}
+
+function ssl_listen(ip port) {
+    logger::log "info" "ssl listen on $port"
+
+    if [[ ! -f /tmp/servelets ]]; then
+        mkfifo /tmp/servelets
+    fi
+    tail -f /tmp/servelets&
+
+    if [[ -f /pki/certificate.pem && -f /pki/privatekey.pem ]]
+    then
+        cat /pki/certificate.pem /pki/privatekey.pem > /tmp/everything.pem
+    fi
+
+    socat -T 60 OPENSSL-LISTEN:$port,cert=/tmp/everything.pem,verify=0,reuseaddr,bind=$ip,fork SYSTEM:"timeout $MAX_RUN_TIME /bin/bash $DIR/servelet 2>>/tmp/servelets"
+}
+
+function servelet_start() {
+    pid=$$
+    logger::log "info" "servelet start (pid $pid)"
+    read -n 4096 -r line || this::bad_request
+    logger::log "info" "request line: $line"
+    read -r REQUEST_METHOD REQUEST_URI REQUEST_HTTP_VERSION <<<"$line"
+    this::validate_request "$REQUEST_METHOD" "REQUEST_URI" "REQUEST_HTTP_VERSION"
+    export QUERY_STRING=`echo "$REQUEST_URI" | cut -d? -f2`
+
+    declare -ax REQUEST_HEADERS
+    CONTENT_LENGTH=0
+    while read -n 4096 -r line
+    do
+        line=${line%%$'\r'}
+        logger::log "debug" "header line: '$line'"
+        REQUEST_HEADERS+=($line)
+        if [[ `echo $line | cut -d\  -f1` == "Cookie:" ]]; then
+            export HTTP_COOKIE=`echo $line | cut -d\  -f2-`
+        fi
+        if [[ `echo $line | cut -d\  -f1` == "Content-Length:" ]]; then
+            CONTENT_LENGTH=`echo $line | cut -d\  -f2-`
+        fi
+        [ -z "$line" ] && break
+    done
+
+    http::set_header "Status" "200 Just dandy"
+    logger::log "info" "servelet valid request $REQUEST_METHOD $REQUEST_URI $REQUEST_HTTP_VERSION"
+
+    if [[ -z $CONTENT_LENGTH ]]; 
+    then
+        http::parse ""
+    else
+        BODYFILE=`mktemp`
+        head -c $CONTENT_LENGTH > $BODYFILE 
+        http::parse "$BODYFILE"
+        rm $BODYFILE
+    fi
+
+    if [[ "$REQUEST_URI" == "/" || "$REQUEST_URI" =~ /\?(.*) || "$REQUEST_URI" =~ /app.sh(.*) || "$REQUEST_URI" =~ /cgi-bin(.*) ]]; then
+        return
+    fi
+
+    REQUEST_URI=`echo $REQUEST_URI | sed 's/\.\.//g'` #maybe it will mitigate directory traversal?
+    if [[ -f "$DIR/data$REQUEST_URI" ]]; then
+        logger::log "info" "static file $REQUEST_URI"
+        http::serve_file $DIR/data$REQUEST_URI
+        http::output_start
+        this::end
+    fi
+
+    http::set_header "Status" "404 who?"
+    http::output_start
+    echo "404"
+    this::end
+}
+
+function validate_request(method uri version) {
+    case $method in
+        "GET")
+            ;;
+        "POST")
+            ;;
+        *)
+            this::bad_request
+            ;;
+    esac
+}
+
+function bad_request() {
+    http::set_header "Status" "400 Bad Request"
+    http::output_start
+    this::end
+}
+
+function end() {
+    logger::log "info" "servelet done (`http::get_set_header Status`)"
+    exit 0
+}

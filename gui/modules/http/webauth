@@ -1,0 +1,83 @@
+#!/bin/bash
+#NAMESPACE=webauth
+
+dependencies::depends "http/http"
+
+function init() {
+    namespaced SID=`http::get_cookie "SID" | sed 's/[^a-zA-Z0-9.,:;!?@~#$%^&*()+-]//g'
+`
+    namespaced AUTHORIZED=0
+    namespaced ROLES=""
+    if [[ ${namespaced SID} == "" ]]
+    then
+	    namespaced SID=`cat /proc/sys/kernel/random/uuid`
+        http::set_cookie "SID" "${namespaced SID}" "`date -d 'now 30 days'`"
+    fi
+
+    if [[ ${namespaced AUTHORIZED} -lt 1 ]]
+    then
+	if [[ `redis-cli -h redis get x-auth-${namespaced SID}:authorized | grep -c $AUTHSECRET` -gt 0 ]]
+	then
+	    namespaced AUTHORIZED=1
+	    if [[ `redis-cli -h redis get x-auth-${namespaced SID}:authorized_at` == "" ]]
+	    then
+		    redis-cli --raw -h redis set x-auth-${namespaced SID}:authorized_at `date +'%s'` > /dev/null
+	    fi
+	fi
+    fi
+
+    local authkey=`http::get_param authkey`
+    if [[ "$authkey" == "" ]]; then
+        return;
+    fi
+
+    for role in $ROLES
+    do
+        htpasswd -bv "$AUTHFILE" "$role" "$authkey" > /dev/null
+        if [[ $? -eq 0 ]]
+        then
+            namespaced AUTHORIZED=1
+            redis-cli --raw -h redis set x-auth-${namespaced SID}:authorized "$AUTHSECRET" > /dev/null
+            redis-cli --raw -h redis set x-auth-${namespaced SID}:authorized_at `date +'%s'` > /dev/null
+            redis-cli --raw -h redis LREM x-auth-${namespaced SID}:ROLES 0 $role > /dev/null
+            redis-cli --raw -h redis LPUSH x-auth-${namespaced SID}:ROLES $role > /dev/null
+        fi
+    done
+    http::set_header 'Status' '302 Found'
+    http::set_header 'Location' "$BASE_DIR/app.sh"
+}
+
+function has_role(role) {
+    if [[ `redis-cli --raw -h redis LRANGE x-auth-${namespaced SID}:ROLES 0 999 | egrep -c '^'$role'$'` -eq 1 && `this::is_authorized` -eq 1 ]]; then
+        echo 1; 
+        return 0;
+    fi
+    echo 0;
+    return 1;
+}
+
+function session_time() {
+    if [[ `this::is_authorized` -ne 1 ]]
+    then
+        echo 0
+        return
+    fi
+    let seconds=`date +'%s'`-`redis-cli -h redis get x-auth-${namespaced SID}:authorized_at`
+    echo $seconds
+}
+
+function getid() {
+    echo ${namespaced SID}
+}
+
+function logout() {
+	namespaced AUTHORIZED=0
+	redis-cli --raw -h redis del x-auth-${namespaced SID}:authorized > /dev/null
+	redis-cli --raw -h redis del x-auth-${namespaced SID}:authorized_at > /dev/null
+	redis-cli --raw -h redis del x-auth-${namespaced SID}:ROLES > /dev/null
+}
+
+function is_authorized() {
+    echo ${namespaced AUTHORIZED}
+    if [[ ${namespaced AUTHORIZED} -ne 1 ]]; then return 1; fi
+}
